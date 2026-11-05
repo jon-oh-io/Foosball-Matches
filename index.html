@@ -120,6 +120,14 @@
 
 <script src="matches.js"></script>
 <script>
+if (typeof MATCHES === 'undefined') {
+  document.querySelector('main').insertAdjacentHTML('afterbegin',
+    '<div class="card" style="border:2px solid #dc2626"><b>matches.js has a typo.</b> ' +
+    'Usually a missing comma at the end of a match line. Fix it on GitHub and reload.</div>');
+  window.MATCHES = [];
+}
+</script>
+<script>
 // Repo the page commits to (when a token is saved). Auto-detected on GitHub Pages.
 const REPO = (() => {
   const h = location.hostname, p = location.pathname.split('/').filter(Boolean);
@@ -203,7 +211,9 @@ async function commitToGitHub(m, token) {
   const { sha, content } = await cur.json();
   const text = decodeURIComponent(escape(atob(content.replace(/\n/g, ''))));
   if (!text.includes(MARKER)) throw new Error(`Marker line missing from ${FILE}`);
-  const updated = text.replace(MARKER, lineFor(m) + '\n' + MARKER);
+  // Make sure every match line ends with a comma, so a hand edit can't break the file
+  const fixed = text.replace(/\}\s*\n(\s*\{)/g, '},\n$1').replace(/\}\s*\n(\s*\/\/ NEW MATCHES)/, '},\n$1');
+  const updated = fixed.replace(MARKER, lineFor(m) + '\n' + MARKER);
   const res = await fetch(api, { method: 'PUT', headers, body: JSON.stringify({
     message: `Add match ${m.date}: Jon ${m.jon} - Jimmy ${m.jimmy}`,
     content: btoa(unescape(encodeURIComponent(updated))), sha }) });
