@@ -14,12 +14,18 @@
             --jon: #60a5fa; --jimmy: #f87171; --accent: #e8eaed; }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
+  body { margin: 0; background: #2e7d32; color: var(--text);
          font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  #pitch { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
+  @media (prefers-color-scheme: dark) { body { background: #1b4d20; } #pitch { filter: brightness(.6); } }
+  h1, .sub { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.45); }
+  h1 .jon, h1 .jimmy { color: #fff; padding: 0 6px; border-radius: 6px; }
+  h1 .jon { background: var(--jon); } h1 .jimmy { background: var(--jimmy); }
+  .card { box-shadow: 0 4px 14px rgba(0,0,0,.25); }
   main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
   h1 { margin: 0 0 4px; font-size: 28px; }
   h2 { font-size: 16px; margin: 0 0 12px; }
-  .sub { color: var(--muted); margin: 0 0 24px; }
+  .sub { margin: 0 0 24px; opacity: .9; }
   .jon { color: var(--jon); } .jimmy { color: var(--jimmy); }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
   .score { display: flex; justify-content: space-between; align-items: center; text-align: center; }
@@ -47,6 +53,27 @@
 </style>
 </head>
 <body>
+<svg id="pitch" viewBox="0 0 1050 680" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <pattern id="stripes" width="150" height="680" patternUnits="userSpaceOnUse">
+      <rect width="75" height="680" fill="#2e7d32"/><rect x="75" width="75" height="680" fill="#388e3c"/>
+    </pattern>
+  </defs>
+  <rect width="1050" height="680" fill="url(#stripes)"/>
+  <g fill="none" stroke="rgba(255,255,255,.75)" stroke-width="4">
+    <rect x="25" y="25" width="1000" height="630"/>
+    <line x1="525" y1="25" x2="525" y2="655"/>
+    <circle cx="525" cy="340" r="91"/>
+    <rect x="25" y="138" width="165" height="404"/><rect x="860" y="138" width="165" height="404"/>
+    <rect x="25" y="248" width="55" height="184"/><rect x="970" y="248" width="55" height="184"/>
+    <path d="M190 267 A91 91 0 0 1 190 413"/><path d="M860 267 A91 91 0 0 0 860 413"/>
+    <path d="M25 35 A10 10 0 0 0 35 25"/><path d="M1015 25 A10 10 0 0 0 1025 35"/>
+    <path d="M35 655 A10 10 0 0 0 25 645"/><path d="M1025 645 A10 10 0 0 0 1015 655"/>
+  </g>
+  <g fill="rgba(255,255,255,.75)">
+    <circle cx="525" cy="340" r="5"/><circle cx="135" cy="340" r="4"/><circle cx="915" cy="340" r="4"/>
+  </g>
+</svg>
 <main>
   <h1>Foosball: <span class="jon">Jon</span> vs <span class="jimmy">Jimmy</span></h1>
   <p class="sub">Head-to-head tracker</p>
