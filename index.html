@@ -117,7 +117,13 @@ function render() {
   const margins = who => ms.filter(x => (who === 'jon' ? x.jon > x.jimmy : x.jimmy > x.jon))
                            .map(x => Math.abs(x.jon - x.jimmy));
   const avg = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : NaN;
-  const best = who => { const m = margins(who); return m.length ? Math.max(...m) : NaN; };
+  const best = who => {
+    const wins = ms.filter(x => (who === 'jon' ? x.jon > x.jimmy : x.jimmy > x.jon));
+    if (!wins.length) return '–';
+    const g = wins.reduce((a, x) => Math.abs(x.jon - x.jimmy) > Math.abs(a.jon - a.jimmy) ? x : a);
+    const [w, l] = who === 'jon' ? [g.jon, g.jimmy] : [g.jimmy, g.jon];
+    return `${w}–${l}`;
+  };
 
   // current streak
   let streak = '–';
@@ -144,7 +150,7 @@ function render() {
     ['Total goals', jonGF, jimGF],
     ['Goal differential', (jonGF - jimGF > 0 ? '+' : '') + (jonGF - jimGF), (jimGF - jonGF > 0 ? '+' : '') + (jimGF - jonGF)],
     ['Avg margin of victory', fmt(avg(margins('jon'))), fmt(avg(margins('jimmy')))],
-    ['Biggest win', fmt(best('jon'), 0), fmt(best('jimmy'), 0)],
+    ['Biggest win', best('jon'), best('jimmy')],
   ];
   $('stats').innerHTML = `<tr><th></th><th class="jon">Jon</th><th class="jimmy">Jimmy</th></tr>` +
     rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('') +
