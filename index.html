@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foosball: Jon vs Jimmy</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1b1f24; --muted: #667085; --line: #e4e7ec;
+    --jon: #2563eb; --jimmy: #dc2626; --accent: #111827;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1115; --card: #181b21; --text: #e8eaed; --muted: #9aa1ab; --line: #2a2f37;
+            --jon: #60a5fa; --jimmy: #f87171; --accent: #e8eaed; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .jon { color: var(--jon); } .jimmy { color: var(--jimmy); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .score { display: flex; justify-content: space-between; align-items: center; text-align: center; }
+  .score .big { font-size: 56px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .score .name { font-weight: 600; margin-top: 6px; }
+  .score .mid { color: var(--muted); font-size: 13px; }
+  .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 16px; background: var(--line); }
+  .bar div { height: 100%; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 500; font-size: 13px; }
+  form { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 10px; align-items: end; }
+  label { font-size: 13px; color: var(--muted); display: block; }
+  input { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+          background: var(--bg); color: var(--text); font: inherit; }
+  button { padding: 9px 16px; border: 0; border-radius: 8px; background: var(--accent); color: var(--bg);
+           font: inherit; font-weight: 600; cursor: pointer; }
+  button.link { background: none; color: var(--muted); padding: 0; font-weight: 400; text-decoration: underline; }
+  #msg { margin-top: 12px; font-size: 14px; }
+  pre { background: var(--bg); border: 1px solid var(--line); padding: 10px; border-radius: 8px; overflow-x: auto; }
+  .win { font-weight: 700; }
+  details { margin-top: 12px; color: var(--muted); font-size: 13px; }
+  @media (max-width: 560px) { form { grid-template-columns: 1fr 1fr; } .score .big { font-size: 44px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Foosball: <span class="jon">Jon</span> vs <span class="jimmy">Jimmy</span></h1>
+  <p class="sub">Head-to-head tracker</p>
+
+  <div class="card">
+    <div class="score">
+      <div><div class="big jon" id="jonW">0</div><div class="name">Jon wins</div></div>
+      <div class="mid" id="games"></div>
+      <div><div class="big jimmy" id="jimW">0</div><div class="name">Jimmy wins</div></div>
+    </div>
+    <div class="bar"><div id="barJon" style="background:var(--jon)"></div><div id="barJim" style="background:var(--jimmy)"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Stats</h2>
+    <table id="stats"></table>
+  </div>
+
+  <div class="card">
+    <h2>Add a match</h2>
+    <form id="add">
+      <div><label for="d">Date</label><input type="date" id="d" required></div>
+      <div><label for="j">Jon</label><input type="number" id="j" min="0" max="99" required></div>
+      <div><label for="m">Jimmy</label><input type="number" id="m" min="0" max="99" required></div>
+      <button type="submit">Add</button>
+    </form>
+    <div id="msg"></div>
+    <details>
+      <summary>Save straight to GitHub from this page (optional)</summary>
+      <p>Paste a fine-grained GitHub token with <b>Contents: Read and write</b> on this repo only.
+         It's stored in this browser only. Without a token, the page shows you the line to paste into
+         <code>matches.js</code>.</p>
+      <input type="password" id="tok" placeholder="github_pat_...">
+      <p><button type="button" class="link" id="saveTok">Save token</button> ·
+         <button type="button" class="link" id="clearTok">Clear token</button> <span id="tokState"></span></p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Match history</h2>
+    <table id="hist"></table>
+  </div>
+</main>
+
+<script src="matches.js"></script>
+<script>
+// Repo the page commits to (when a token is saved). Auto-detected on GitHub Pages.
+const REPO = (() => {
+  const h = location.hostname, p = location.pathname.split('/').filter(Boolean);
+  if (h.endsWith('.github.io')) return { owner: h.split('.')[0], name: p[0] || h };
+  return { owner: 'YOUR_GITHUB_USERNAME', name: 'foosball-tracker' };
+})();
+const FILE = 'matches.js', MARKER = '  // NEW MATCHES ABOVE THIS LINE';
+
+const $ = id => document.getElementById(id);
+const fmt = (n, d = 1) => Number.isFinite(n) ? n.toFixed(d) : '–';
+const fmtDate = s => new Date(s + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+                set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} } };
+
+function render() {
+  const ms = [...MATCHES].sort((a, b) => a.date.localeCompare(b.date));
+  const n = ms.length;
+  const jonW = ms.filter(x => x.jon > x.jimmy).length;
+  const jimW = ms.filter(x => x.jimmy > x.jon).length;
+  const sum = k => ms.reduce((s, x) => s + x[k], 0);
+  const jonGF = sum('jon'), jimGF = sum('jimmy');
+  const margins = who => ms.filter(x => (who === 'jon' ? x.jon > x.jimmy : x.jimmy > x.jon))
+                           .map(x => Math.abs(x.jon - x.jimmy));
+  const avg = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : NaN;
+  const best = who => { const m = margins(who); return m.length ? Math.max(...m) : NaN; };
+
+  // current streak
+  let streak = '–';
+  if (n) {
+    const last = ms[n - 1], who = last.jon > last.jimmy ? 'jon' : 'jimmy';
+    let c = 0;
+    for (let i = n - 1; i >= 0; i--) {
+      const w = ms[i].jon > ms[i].jimmy ? 'jon' : 'jimmy';
+      if (w !== who) break; c++;
+    }
+    streak = `<span class="${who}">${who === 'jon' ? 'Jon' : 'Jimmy'} W${c}</span>`;
+  }
+  const close = ms.filter(x => Math.abs(x.jon - x.jimmy) === 1).length;
+
+  $('jonW').textContent = jonW; $('jimW').textContent = jimW;
+  $('games').innerHTML = `${n} games<br>current streak: ${streak}`;
+  $('barJon').style.width = n ? (jonW / n * 100) + '%' : '50%';
+  $('barJim').style.width = n ? (jimW / n * 100) + '%' : '50%';
+
+  const rows = [
+    ['Win %', fmt(jonW / n * 100, 0) + '%', fmt(jimW / n * 100, 0) + '%'],
+    ['Avg goals scored', fmt(jonGF / n), fmt(jimGF / n)],
+    ['Avg goals allowed', fmt(jimGF / n), fmt(jonGF / n)],
+    ['Total goals', jonGF, jimGF],
+    ['Goal differential', (jonGF - jimGF > 0 ? '+' : '') + (jonGF - jimGF), (jimGF - jonGF > 0 ? '+' : '') + (jimGF - jonGF)],
+    ['Avg margin of victory', fmt(avg(margins('jon'))), fmt(avg(margins('jimmy')))],
+    ['Biggest win', fmt(best('jon'), 0), fmt(best('jimmy'), 0)],
+  ];
+  $('stats').innerHTML = `<tr><th></th><th class="jon">Jon</th><th class="jimmy">Jimmy</th></tr>` +
+    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('') +
+    `<tr><td>One-goal games</td><td colspan="2" style="text-align:center">${close} of ${n}</td></tr>`;
+
+  $('hist').innerHTML = `<tr><th>Date</th><th class="jon">Jon</th><th class="jimmy">Jimmy</th><th>Winner</th></tr>` +
+    ms.slice().reverse().map(x => {
+      const jw = x.jon > x.jimmy;
+      return `<tr><td>${fmtDate(x.date)}</td><td class="${jw ? 'win' : ''}">${x.jon}</td>
+              <td class="${jw ? '' : 'win'}">${x.jimmy}</td>
+              <td class="${jw ? 'jon' : 'jimmy'}">${jw ? 'Jon' : 'Jimmy'}</td></tr>`;
+    }).join('');
+}
+
+// ---- Add a match ----
+const lineFor = m => `  { date: "${m.date}", jon: ${m.jon}, jimmy: ${m.jimmy} },`;
+
+async function commitToGitHub(m, token) {
+  const api = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/contents/${FILE}`;
+  const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' };
+  const cur = await fetch(api, { headers, cache: 'no-store' });
+  if (!cur.ok) throw new Error(`Couldn't read ${FILE} (HTTP ${cur.status})`);
+  const { sha, content } = await cur.json();
+  const text = decodeURIComponent(escape(atob(content.replace(/\n/g, ''))));
+  if (!text.includes(MARKER)) throw new Error(`Marker line missing from ${FILE}`);
+  const updated = text.replace(MARKER, lineFor(m) + '\n' + MARKER);
+  const res = await fetch(api, { method: 'PUT', headers, body: JSON.stringify({
+    message: `Add match ${m.date}: Jon ${m.jon} - Jimmy ${m.jimmy}`,
+    content: btoa(unescape(encodeURIComponent(updated))), sha }) });
+  if (!res.ok) throw new Error(`Commit failed (HTTP ${res.status})`);
+}
+
+$('d').value = new Date().toLocaleDateString('en-CA');
+$('add').addEventListener('submit', async e => {
+  e.preventDefault();
+  const m = { date: $('d').value, jon: +$('j').value, jimmy: +$('m').value };
+  if (m.jon === m.jimmy) { $('msg').textContent = 'No ties in foosball. Check the score.'; return; }
+  MATCHES.push(m); render();
+  const token = store.get('gh_token');
+  if (token) {
+    $('msg').textContent = 'Saving to GitHub…';
+    try {
+      await commitToGitHub(m, token);
+      $('msg').textContent = 'Saved and committed. The live site updates in about a minute.';
+    } catch (err) { $('msg').innerHTML = `${err.message}. Add it by hand instead:<pre>${lineFor(m)}</pre>`; }
+  } else {
+    $('msg').innerHTML = `Added on this page only. To keep it, paste this line into <code>${FILE}</code>
+      just above <code>// NEW MATCHES ABOVE THIS LINE</code> and commit:<pre>${lineFor(m)}</pre>`;
+  }
+  $('j').value = ''; $('m').value = '';
+});
+
+const tokState = () => $('tokState').textContent = store.get('gh_token') ? '(token saved)' : '(no token)';
+$('saveTok').onclick = () => { store.set('gh_token', $('tok').value.trim()); $('tok').value = ''; tokState(); };
+$('clearTok').onclick = () => { store.set('gh_token', null); tokState(); };
+tokState();
+render();
+</script>
+</body>
+</html>
