@@ -118,7 +118,10 @@
   </div>
 </main>
 
-<script src="matches.js"></script>
+<script>
+// Load a fresh copy of matches.js every time (GitHub Pages caches files for ~10 minutes)
+document.write('<script src="matches.js?v=' + Date.now() + '"><\/script>');
+</script>
 <script>
 if (typeof MATCHES === 'undefined') {
   document.querySelector('main').insertAdjacentHTML('afterbegin',
