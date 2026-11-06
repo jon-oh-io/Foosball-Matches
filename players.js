@@ -8,5 +8,6 @@ const PLAYERS = [
   "Cole",
   "Austin",
   "Creed",
+  "Charlie",
   // NEW PLAYERS ABOVE THIS LINE
 ];
