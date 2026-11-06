@@ -8,5 +8,6 @@ const MATCHES = [
   { date: "2026-11-06", p1: "Josh", g1: 9, p2: "Jon", g2: 6 },
   { date: "2026-11-06", p1: "Josh", g1: 9, p2: "Jimmy", g2: 8 },
   { date: "2026-11-06", p1: "Jon", g1: 9, p2: "Jimmy", g2: 4 },
+  { date: "2026-11-06", p1: "Jon", g1: 9, p2: "Josh", g2: 6 },
   // NEW MATCHES ABOVE THIS LINE
 ];
