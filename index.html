@@ -21,7 +21,10 @@
   main { max-width: 900px; margin: 0 auto; padding: 32px 16px 64px; }
   h1 { margin: 0 0 4px; font-size: 30px; }
   h1, .sub { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.45); }
-  .sub { margin: 0 0 24px; opacity: .9; }
+  .sub { margin: 0; opacity: .9; }
+  .rules { margin: 2px 0 24px; font-size: 12px; }
+  .rules a { color: #fff; opacity: .85; text-shadow: 0 1px 3px rgba(0,0,0,.45); }
+  .rules a:hover { opacity: 1; }
   h2 { font-size: 17px; margin: 0 0 12px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px;
           margin-bottom: 16px; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
@@ -94,6 +97,7 @@
 <main>
   <h1>Office Foosball</h1>
   <p class="sub" id="summary"></p>
+  <p class="rules"><a href="https://www.foosball.com/content.php?page=90" target="_blank" rel="noopener">Official rules</a></p>
 
   <div class="card">
     <h2>Leaderboard</h2>
