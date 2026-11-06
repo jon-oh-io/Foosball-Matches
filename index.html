@@ -54,12 +54,16 @@
   button { padding: 9px 16px; border: 0; border-radius: 8px; background: var(--accent); color: var(--bg);
            font: inherit; font-weight: 600; cursor: pointer; }
   button.link { background: none; color: var(--muted); padding: 0; font-weight: 400; text-decoration: underline; }
-  #msg { margin-top: 12px; font-size: 14px; }
+  #msg, #pmsg { margin-top: 12px; font-size: 14px; }
+  h2.sep { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+  form.row { grid-template-columns: 1fr auto; max-width: 420px; }
   pre { background: var(--bg); border: 1px solid var(--line); padding: 10px; border-radius: 8px; overflow-x: auto; }
   details { margin-top: 12px; color: var(--muted); font-size: 13px; }
   @media (max-width: 640px) {
     form { grid-template-columns: 1fr 1fr; }
     form .date, form button { grid-column: 1 / -1; }
+    form.row { grid-template-columns: 1fr auto; max-width: none; }
+    form.row button { grid-column: auto; }
     .score .big { font-size: 44px; }
   }
 </style>
@@ -118,11 +122,19 @@
       <button type="submit">Add</button>
     </form>
     <div id="msg"></div>
+
+    <h2 class="sep">Add a player</h2>
+    <form id="addPlayer" class="row">
+      <div><label for="newName">Name</label><input id="newName" maxlength="30" autocomplete="off" placeholder="e.g. Sarah" required></div>
+      <button type="submit">Add player</button>
+    </form>
+    <div id="pmsg"></div>
+
     <details>
       <summary>Save straight to GitHub from this page (optional)</summary>
       <p>Paste a fine-grained GitHub token with <b>Contents: Read and write</b> on this repo only.
-         It's stored in this browser only. Without a token, the page shows you the line to paste into
-         <code>matches.js</code>.</p>
+         It's stored in this browser only and is used for both matches and players. Without a token,
+         the page shows you the line to paste into the file by hand.</p>
       <input type="password" id="tok" placeholder="github_pat_...">
       <p><button type="button" class="link" id="saveTok">Save token</button> ·
          <button type="button" class="link" id="clearTok">Clear token</button> <span id="tokState"></span></p>
@@ -157,7 +169,6 @@ const REPO = (() => {
   if (h.endsWith('.github.io')) return { owner: h.split('.')[0], name: p[0] || h };
   return { owner: 'YOUR_GITHUB_USERNAME', name: 'Foosball-Matches' };
 })();
-const FILE = 'matches.js', MARKER = '  // NEW MATCHES ABOVE THIS LINE';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -291,26 +302,55 @@ function fillSelects() {
 
 function renderAll() { renderBoard(); renderH2H(); renderRecent(); }
 
-// ---------- Add a match ----------
-const lineFor = m => `  { date: "${m.date}", p1: ${JSON.stringify(m.p1)}, g1: ${m.g1}, p2: ${JSON.stringify(m.p2)}, g2: ${m.g2} },`;
+// ---------- Saving to GitHub ----------
+const FILES = {
+  matches: { file: 'matches.js', marker: '  // NEW MATCHES ABOVE THIS LINE',
+             // every match line ends in "}," so a hand edit can't break the file
+             fix: s => s.replace(/\}[ \t]*\n(\s*(\{|\/\/ NEW MATCHES))/g, '},\n$1') },
+  players: { file: 'players.js', marker: '  // NEW PLAYERS ABOVE THIS LINE',
+             // every name line ends in ","
+             fix: s => s.replace(/"[ \t]*\n(\s*("|\/\/ NEW PLAYERS))/g, '",\n$1') },
+};
+const matchLine = m => `  { date: "${m.date}", p1: ${JSON.stringify(m.p1)}, g1: ${m.g1}, p2: ${JSON.stringify(m.p2)}, g2: ${m.g2} },`;
+const playerLine = name => `  ${JSON.stringify(name)},`;
 
-async function commitToGitHub(m, token) {
-  const api = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/contents/${FILE}`;
+async function commitLine(kind, line, message, token) {
+  const { file, marker, fix } = FILES[kind];
+  const api = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/contents/${file}`;
   const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' };
   const cur = await fetch(api, { headers, cache: 'no-store' });
-  if (!cur.ok) throw new Error(`Couldn't read ${FILE} (HTTP ${cur.status})`);
+  if (!cur.ok) throw new Error(`Couldn't read ${file} (HTTP ${cur.status})`);
   const { sha, content } = await cur.json();
-  const text = decodeURIComponent(escape(atob(content.replace(/\n/g, ''))));
-  if (!text.includes(MARKER)) throw new Error(`Marker line missing from ${FILE}`);
-  // Make sure every match line ends with a comma, so a hand edit can't break the file
-  const fixed = text.replace(/\}\s*\n(\s*\{)/g, '},\n$1').replace(/\}\s*\n(\s*\/\/ NEW MATCHES)/, '},\n$1');
-  const updated = fixed.replace(MARKER, lineFor(m) + '\n' + MARKER);
+  let text = decodeURIComponent(escape(atob(content.replace(/\n/g, ''))));
+  // No marker line yet? Put one just before the closing ];
+  if (!text.includes(marker)) {
+    const i = text.lastIndexOf('];');
+    if (i < 0) throw new Error(`Couldn't find the end of the list in ${file}`);
+    text = text.slice(0, i).replace(/\s*$/, '\n') + marker + '\n' + text.slice(i);
+  }
+  const updated = fix(text).replace(marker, line + '\n' + marker);
   const res = await fetch(api, { method: 'PUT', headers, body: JSON.stringify({
-    message: `Add match ${m.date}: ${m.p1} ${m.g1} - ${m.p2} ${m.g2}`,
-    content: btoa(unescape(encodeURIComponent(updated))), sha }) });
+    message, content: btoa(unescape(encodeURIComponent(updated))), sha }) });
   if (!res.ok) throw new Error(`Commit failed (HTTP ${res.status})`);
 }
 
+// Save to GitHub if there's a token; otherwise show the line to paste by hand
+async function save(kind, line, message, msgEl, what) {
+  const { file, marker } = FILES[kind];
+  const token = store.get('gh_token');
+  if (!token) {
+    msgEl.innerHTML = `${what} on this page only. To keep it, paste this line into <code>${file}</code>
+      just above <code>${marker.trim()}</code> and commit:<pre>${esc(line)}</pre>`;
+    return;
+  }
+  msgEl.textContent = 'Saving to GitHub…';
+  try {
+    await commitLine(kind, line, message, token);
+    msgEl.textContent = 'Saved and committed. The live site updates in about a minute.';
+  } catch (err) { msgEl.innerHTML = `${esc(err.message)}. Add it by hand instead:<pre>${esc(line)}</pre>`; }
+}
+
+// ---------- Add a match ----------
 $('add').addEventListener('submit', async e => {
   e.preventDefault();
   const m = { date: $('d').value, p1: $('p1').value, g1: +$('g1').value, p2: $('p2').value, g2: +$('g2').value };
@@ -319,18 +359,25 @@ $('add').addEventListener('submit', async e => {
   MATCHES.push(m);
   setMatchup(m.p1, m.p2, false);
   renderAll();
-  const token = store.get('gh_token');
-  if (token) {
-    $('msg').textContent = 'Saving to GitHub…';
-    try {
-      await commitToGitHub(m, token);
-      $('msg').textContent = 'Saved and committed. The live site updates in about a minute.';
-    } catch (err) { $('msg').innerHTML = `${esc(err.message)}. Add it by hand instead:<pre>${esc(lineFor(m))}</pre>`; }
-  } else {
-    $('msg').innerHTML = `Added on this page only. To keep it, paste this line into <code>${FILE}</code>
-      just above <code>// NEW MATCHES ABOVE THIS LINE</code> and commit:<pre>${esc(lineFor(m))}</pre>`;
-  }
   $('g1').value = ''; $('g2').value = '';
+  await save('matches', matchLine(m), `Add match ${m.date}: ${m.p1} ${m.g1} - ${m.p2} ${m.g2}`, $('msg'), 'Added');
+});
+
+// ---------- Add a player ----------
+$('addPlayer').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('newName').value.trim().replace(/\s+/g, ' ');
+  if (!name) return;
+  if (name.length > 30) { $('pmsg').textContent = 'Keep names to 30 characters or fewer.'; return; }
+  const taken = allPlayers().find(p => p.toLowerCase() === name.toLowerCase());
+  if (taken) { $('pmsg').textContent = `${taken} is already on the list.`; return; }
+  PLAYERS.push(name);
+  const keep = ['pa', 'pb', 'p1', 'p2'].map(id => $(id).value);
+  fillSelects();
+  ['pa', 'pb', 'p1', 'p2'].forEach((id, i) => $(id).value = keep[i]);
+  renderAll();
+  $('newName').value = '';
+  await save('players', playerLine(name), `Add player ${name}`, $('pmsg'), `${name} added`);
 });
 
 const tokState = () => $('tokState').textContent = store.get('gh_token') ? '(token saved)' : '(no token)';

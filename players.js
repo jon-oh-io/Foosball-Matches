@@ -1,7 +1,8 @@
 // Office foosball players.
-// To add someone: add their name in quotes, followed by a comma, then commit.
-// Names must match exactly what's used in matches.js.
+// Add players from the web page, or by hand: add the name in quotes followed by a comma,
+// just above the marker line, then commit. Names must match exactly what's used in matches.js.
 const PLAYERS = [
   "Jon",
   "Jimmy",
+  // NEW PLAYERS ABOVE THIS LINE
 ];

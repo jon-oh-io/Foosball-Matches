@@ -3,7 +3,8 @@
 A static head-to-head tracker hosted on GitHub Pages. No server, no database: all match data lives in `matches.js`.
 
 ## Adding a player
-Open `players.js`, add the name in quotes followed by a comma, and commit:
+Use the "Add a player" form on the page (with a token saved, it commits for you), or open `players.js`,
+add the name in quotes followed by a comma just above `// NEW PLAYERS ABOVE THIS LINE`, and commit:
 
 ```js
   "Sarah",
@@ -26,7 +27,7 @@ With a token saved (see below), it commits the line for you and the site updates
 1. GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token.
 2. Repository access: **Only this repository**. Permissions: **Contents → Read and write**.
 3. On the page, open "Save straight to GitHub", paste the token, click **Save token**.
-The token is kept in that browser's local storage only.
+The token is kept in that browser's local storage only, and is used for both matches and players.
 
 ## What's on the page
 - **Leaderboard:** every player's games, wins, losses, win %, goals for/against per game, goal differential and streak.
