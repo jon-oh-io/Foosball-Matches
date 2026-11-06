@@ -1,9 +1,9 @@
-// Foosball match history: Jon vs Jimmy
-// To add a game by hand: copy a line, change the values, commit.
-// date = YYYY-MM-DD, jon = Jon's goals, jimmy = Jimmy's goals
+// Office foosball match history.
+// One line per game: date (YYYY-MM-DD), p1/g1 = first player and their goals, p2/g2 = second player and their goals.
+// Every line ends with a comma. New games go just above the marker line.
 const MATCHES = [
-  { date: "2026-09-02", jon: 8, jimmy: 9 },
-  { date: "2026-09-03", jon: 9, jimmy: 8 },
-  { date: "2026-09-05", jon: 9, jimmy: 6 },
+  { date: "2026-09-02", p1: "Jon", g1: 9, p2: "Jimmy", g2: 8 },
+  { date: "2026-09-03", p1: "Jon", g1: 8, p2: "Jimmy", g2: 9 },
+  { date: "2026-09-05", p1: "Jon", g1: 9, p2: "Jimmy", g2: 6 },
   // NEW MATCHES ABOVE THIS LINE
 ];

@@ -3,53 +3,65 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Foosball: Jon vs Jimmy</title>
+<title>Office Foosball</title>
 <style>
   :root {
     --bg: #f6f7f9; --card: #fff; --text: #1b1f24; --muted: #667085; --line: #e4e7ec;
-    --jon: #2563eb; --jimmy: #dc2626; --accent: #111827;
+    --a: #2563eb; --b: #dc2626; --accent: #111827; --gold: #b7791f; --hover: #f1f5f9;
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #0f1115; --card: #181b21; --text: #e8eaed; --muted: #9aa1ab; --line: #2a2f37;
-            --jon: #60a5fa; --jimmy: #f87171; --accent: #e8eaed; }
+            --a: #60a5fa; --b: #f87171; --accent: #e8eaed; --gold: #f6c453; --hover: #20242c; }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: #2e7d32; color: var(--text);
          font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
   #pitch { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
   @media (prefers-color-scheme: dark) { body { background: #1b4d20; } #pitch { filter: brightness(.6); } }
+  main { max-width: 900px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { margin: 0 0 4px; font-size: 30px; }
   h1, .sub { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.45); }
-  h1 .jon, h1 .jimmy { color: #fff; padding: 0 6px; border-radius: 6px; }
-  h1 .jon { background: var(--jon); } h1 .jimmy { background: var(--jimmy); }
-  .card { box-shadow: 0 4px 14px rgba(0,0,0,.25); }
-  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { margin: 0 0 4px; font-size: 28px; }
-  h2 { font-size: 16px; margin: 0 0 12px; }
   .sub { margin: 0 0 24px; opacity: .9; }
-  .jon { color: var(--jon); } .jimmy { color: var(--jimmy); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  h2 { font-size: 17px; margin: 0 0 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px;
+          margin-bottom: 16px; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+  .a { color: var(--a); } .b { color: var(--b); }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child, .l { text-align: left; }
+  th { color: var(--muted); font-weight: 500; font-size: 13px; }
+  #board tbody tr { cursor: pointer; }
+  #board tbody tr:hover { background: var(--hover); }
+  .rank { color: var(--muted); width: 28px; }
+  .crown { color: var(--gold); }
+  .win { font-weight: 700; }
+  .hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+  .pick { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .pick select { flex: 1; min-width: 120px; }
   .score { display: flex; justify-content: space-between; align-items: center; text-align: center; }
   .score .big { font-size: 56px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
   .score .name { font-weight: 600; margin-top: 6px; }
   .score .mid { color: var(--muted); font-size: 13px; }
-  .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 16px; background: var(--line); }
+  .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 16px 0 20px; background: var(--line); }
   .bar div { height: 100%; }
-  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; }
-  th:first-child, td:first-child { text-align: left; }
-  th { color: var(--muted); font-weight: 500; font-size: 13px; }
-  form { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 10px; align-items: end; }
+  h3 { font-size: 14px; margin: 20px 0 6px; color: var(--muted); font-weight: 600; }
+  .empty { color: var(--muted); text-align: center; padding: 16px 0; }
+  form { display: grid; grid-template-columns: 1.2fr 1.2fr .7fr 1.2fr .7fr auto; gap: 10px; align-items: end; }
   label { font-size: 13px; color: var(--muted); display: block; }
-  input { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+  input, select { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
           background: var(--bg); color: var(--text); font: inherit; }
   button { padding: 9px 16px; border: 0; border-radius: 8px; background: var(--accent); color: var(--bg);
            font: inherit; font-weight: 600; cursor: pointer; }
   button.link { background: none; color: var(--muted); padding: 0; font-weight: 400; text-decoration: underline; }
   #msg { margin-top: 12px; font-size: 14px; }
   pre { background: var(--bg); border: 1px solid var(--line); padding: 10px; border-radius: 8px; overflow-x: auto; }
-  .win { font-weight: 700; }
   details { margin-top: 12px; color: var(--muted); font-size: 13px; }
-  @media (max-width: 560px) { form { grid-template-columns: 1fr 1fr; } .score .big { font-size: 44px; } }
+  @media (max-width: 640px) {
+    form { grid-template-columns: 1fr 1fr; }
+    form .date, form button { grid-column: 1 / -1; }
+    .score .big { font-size: 44px; }
+  }
 </style>
 </head>
 <body>
@@ -74,30 +86,35 @@
     <circle cx="525" cy="340" r="5"/><circle cx="135" cy="340" r="4"/><circle cx="915" cy="340" r="4"/>
   </g>
 </svg>
+
 <main>
-  <h1>Foosball: <span class="jon">Jon</span> vs <span class="jimmy">Jimmy</span></h1>
-  <p class="sub">Head-to-head tracker</p>
+  <h1>Office Foosball</h1>
+  <p class="sub" id="summary"></p>
 
   <div class="card">
-    <div class="score">
-      <div><div class="big jon" id="jonW">0</div><div class="name">Jon wins</div></div>
-      <div class="mid" id="games"></div>
-      <div><div class="big jimmy" id="jimW">0</div><div class="name">Jimmy wins</div></div>
-    </div>
-    <div class="bar"><div id="barJon" style="background:var(--jon)"></div><div id="barJim" style="background:var(--jimmy)"></div></div>
+    <h2>Leaderboard</h2>
+    <div class="scroll"><table id="board"></table></div>
+    <p class="hint">Click a player to see their head-to-heads.</p>
   </div>
 
-  <div class="card">
-    <h2>Stats</h2>
-    <table id="stats"></table>
+  <div class="card" id="h2h">
+    <h2>Head-to-head</h2>
+    <div class="pick">
+      <select id="pa" aria-label="Player A"></select>
+      <span>vs</span>
+      <select id="pb" aria-label="Player B"></select>
+    </div>
+    <div id="h2hBody"></div>
   </div>
 
   <div class="card">
     <h2>Add a match</h2>
     <form id="add">
-      <div><label for="d">Date</label><input type="date" id="d" required></div>
-      <div><label for="j">Jon</label><input type="number" id="j" min="0" max="99" required></div>
-      <div><label for="m">Jimmy</label><input type="number" id="m" min="0" max="99" required></div>
+      <div class="date"><label for="d">Date</label><input type="date" id="d" required></div>
+      <div><label for="p1">Player 1</label><select id="p1" required></select></div>
+      <div><label for="g1">Goals</label><input type="number" id="g1" min="0" max="99" required></div>
+      <div><label for="p2">Player 2</label><select id="p2" required></select></div>
+      <div><label for="g2">Goals</label><input type="number" id="g2" min="0" max="99" required></div>
       <button type="submit">Add</button>
     </form>
     <div id="msg"></div>
@@ -113,21 +130,24 @@
   </div>
 
   <div class="card">
-    <h2>Match history</h2>
-    <table id="hist"></table>
+    <h2>Recent matches</h2>
+    <div class="scroll"><table id="recent"></table></div>
   </div>
 </main>
 
 <script>
-// Load a fresh copy of matches.js every time (GitHub Pages caches files for ~10 minutes)
+// Load fresh copies every time (GitHub Pages caches files for ~10 minutes)
+document.write('<script src="players.js?v=' + Date.now() + '"><\/script>');
 document.write('<script src="matches.js?v=' + Date.now() + '"><\/script>');
 </script>
 <script>
-if (typeof MATCHES === 'undefined') {
+const problems = [];
+if (typeof PLAYERS === 'undefined') { problems.push('players.js'); window.PLAYERS = []; }
+if (typeof MATCHES === 'undefined') { problems.push('matches.js'); window.MATCHES = []; }
+if (problems.length) {
   document.querySelector('main').insertAdjacentHTML('afterbegin',
-    '<div class="card" style="border:2px solid #dc2626"><b>matches.js has a typo.</b> ' +
-    'Usually a missing comma at the end of a match line. Fix it on GitHub and reload.</div>');
-  window.MATCHES = [];
+    `<div class="card" style="border:2px solid #dc2626"><b>${problems.join(' and ')} has a typo.</b> ` +
+    'Usually a missing comma or quote at the end of a line. Fix it on GitHub and reload.</div>');
 }
 </script>
 <script>
@@ -135,76 +155,144 @@ if (typeof MATCHES === 'undefined') {
 const REPO = (() => {
   const h = location.hostname, p = location.pathname.split('/').filter(Boolean);
   if (h.endsWith('.github.io')) return { owner: h.split('.')[0], name: p[0] || h };
-  return { owner: 'YOUR_GITHUB_USERNAME', name: 'foosball-tracker' };
+  return { owner: 'YOUR_GITHUB_USERNAME', name: 'Foosball-Matches' };
 })();
 const FILE = 'matches.js', MARKER = '  // NEW MATCHES ABOVE THIS LINE';
 
 const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmt = (n, d = 1) => Number.isFinite(n) ? n.toFixed(d) : '–';
+const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '–';
+const signed = n => (n > 0 ? '+' : '') + n;
 const fmtDate = s => new Date(s + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } },
                 set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} } };
 
-function render() {
-  const ms = [...MATCHES].sort((a, b) => a.date.localeCompare(b.date));
-  const n = ms.length;
-  const jonW = ms.filter(x => x.jon > x.jimmy).length;
-  const jimW = ms.filter(x => x.jimmy > x.jon).length;
-  const sum = k => ms.reduce((s, x) => s + x[k], 0);
-  const jonGF = sum('jon'), jimGF = sum('jimmy');
-  const margins = who => ms.filter(x => (who === 'jon' ? x.jon > x.jimmy : x.jimmy > x.jon))
-                           .map(x => Math.abs(x.jon - x.jimmy));
-  const avg = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : NaN;
-  const best = who => {
-    const wins = ms.filter(x => (who === 'jon' ? x.jon > x.jimmy : x.jimmy > x.jon));
-    if (!wins.length) return '–';
-    const g = wins.reduce((a, x) => Math.abs(x.jon - x.jimmy) > Math.abs(a.jon - a.jimmy) ? x : a);
-    const [w, l] = who === 'jon' ? [g.jon, g.jimmy] : [g.jimmy, g.jon];
-    return `${w}–${l}`;
-  };
+// Everyone in players.js, plus anyone who appears in a match but isn't listed
+const allPlayers = () => [...new Set([...PLAYERS, ...MATCHES.flatMap(m => [m.p1, m.p2])])];
+const sorted = () => [...MATCHES].sort((x, y) => x.date.localeCompare(y.date));
 
-  // current streak
-  let streak = '–';
-  if (n) {
-    const last = ms[n - 1], who = last.jon > last.jimmy ? 'jon' : 'jimmy';
-    let c = 0;
-    for (let i = n - 1; i >= 0; i--) {
-      const w = ms[i].jon > ms[i].jimmy ? 'jon' : 'jimmy';
-      if (w !== who) break; c++;
-    }
-    streak = `<span class="${who}">${who === 'jon' ? 'Jon' : 'Jimmy'} W${c}</span>`;
-  }
-  const close = ms.filter(x => Math.abs(x.jon - x.jimmy) === 1).length;
+// A match seen from one player's side: { date, me, opp, gf, ga, won }
+const view = (m, who) => m.p1 === who
+  ? { date: m.date, me: m.p1, opp: m.p2, gf: m.g1, ga: m.g2, won: m.g1 > m.g2 }
+  : { date: m.date, me: m.p2, opp: m.p1, gf: m.g2, ga: m.g1, won: m.g2 > m.g1 };
 
-  $('jonW').textContent = jonW; $('jimW').textContent = jimW;
-  $('games').innerHTML = `${n} games<br>current streak: ${streak}`;
-  $('barJon').style.width = n ? (jonW / n * 100) + '%' : '50%';
-  $('barJim').style.width = n ? (jimW / n * 100) + '%' : '50%';
-
-  const rows = [
-    ['Win %', fmt(jonW / n * 100, 0) + '%', fmt(jimW / n * 100, 0) + '%'],
-    ['Avg goals scored', fmt(jonGF / n), fmt(jimGF / n)],
-    ['Avg goals allowed', fmt(jimGF / n), fmt(jonGF / n)],
-    ['Total goals', jonGF, jimGF],
-    ['Goal differential', (jonGF - jimGF > 0 ? '+' : '') + (jonGF - jimGF), (jimGF - jonGF > 0 ? '+' : '') + (jimGF - jonGF)],
-    ['Avg margin of victory', fmt(avg(margins('jon'))), fmt(avg(margins('jimmy')))],
-    ['Biggest win', best('jon'), best('jimmy')],
-  ];
-  $('stats').innerHTML = `<tr><th></th><th class="jon">Jon</th><th class="jimmy">Jimmy</th></tr>` +
-    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('') +
-    `<tr><td>One-goal games</td><td colspan="2" style="text-align:center">${close} of ${n}</td></tr>`;
-
-  $('hist').innerHTML = `<tr><th>Date</th><th class="jon">Jon</th><th class="jimmy">Jimmy</th><th>Winner</th></tr>` +
-    ms.slice().reverse().map(x => {
-      const jw = x.jon > x.jimmy;
-      return `<tr><td>${fmtDate(x.date)}</td><td class="${jw ? 'win' : ''}">${x.jon}</td>
-              <td class="${jw ? '' : 'win'}">${x.jimmy}</td>
-              <td class="${jw ? 'jon' : 'jimmy'}">${jw ? 'Jon' : 'Jimmy'}</td></tr>`;
-    }).join('');
+function streakOf(games) {
+  if (!games.length) return '–';
+  const last = games[games.length - 1].won;
+  let c = 0;
+  for (let i = games.length - 1; i >= 0 && games[i].won === last; i--) c++;
+  return (last ? 'W' : 'L') + c;
 }
 
-// ---- Add a match ----
-const lineFor = m => `  { date: "${m.date}", jon: ${m.jon}, jimmy: ${m.jimmy} },`;
+function playerStats(who, ms = sorted()) {
+  const g = ms.filter(m => m.p1 === who || m.p2 === who).map(m => view(m, who));
+  const w = g.filter(x => x.won).length, gf = g.reduce((s, x) => s + x.gf, 0), ga = g.reduce((s, x) => s + x.ga, 0);
+  return { who, n: g.length, w, l: g.length - w, gf, ga, streak: streakOf(g), games: g };
+}
+
+// ---------- Leaderboard ----------
+function renderBoard() {
+  const ms = sorted();
+  const rows = allPlayers().map(p => playerStats(p, ms))
+    .sort((x, y) => (y.n ? y.w / y.n : -1) - (x.n ? x.w / x.n : -1) || y.w - x.w || (y.gf - y.ga) - (x.gf - x.ga));
+  const goals = ms.reduce((s, m) => s + m.g1 + m.g2, 0);
+  $('summary').textContent = `${ms.length} games · ${allPlayers().length} players · ${goals} goals`;
+  $('board').innerHTML = `<thead><tr><th>#</th><th class="l">Player</th><th>GP</th><th>W</th><th>L</th><th>Win %</th>
+      <th>GF/g</th><th>GA/g</th><th>GD</th><th>Streak</th></tr></thead><tbody>` +
+    rows.map((r, i) => `<tr data-p="${esc(r.who)}">
+      <td class="rank">${r.n ? i + 1 : ''}</td>
+      <td class="l"><b>${esc(r.who)}</b>${i === 0 && r.n ? ' <span class="crown" title="Top of the table">♛</span>' : ''}</td>
+      <td>${r.n}</td><td>${r.w}</td><td>${r.l}</td><td>${pct(r.w, r.n)}</td>
+      <td>${fmt(r.gf / r.n)}</td><td>${fmt(r.ga / r.n)}</td><td>${r.n ? signed(r.gf - r.ga) : '–'}</td><td>${r.streak}</td>
+    </tr>`).join('') + '</tbody>';
+  $('board').querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => {
+    const p = tr.dataset.p;
+    // Pair them with their most-played opponent
+    const opp = Object.entries(playerStats(p).games.reduce((c, g) => (c[g.opp] = (c[g.opp] || 0) + 1, c), {}))
+      .sort((x, y) => y[1] - x[1])[0]?.[0] || allPlayers().find(x => x !== p);
+    setMatchup(p, opp, true);
+  });
+}
+
+// ---------- Head-to-head ----------
+function renderH2H() {
+  const A = $('pa').value, B = $('pb').value;
+  if (!A || !B || A === B) { $('h2hBody').innerHTML = '<p class="empty">Pick two different players.</p>'; return; }
+  const ms = sorted().filter(m => (m.p1 === A && m.p2 === B) || (m.p1 === B && m.p2 === A));
+  const ga = ms.map(m => view(m, A)), n = ga.length;
+  if (!n) { $('h2hBody').innerHTML = `<p class="empty">${esc(A)} and ${esc(B)} haven't played yet.</p>`; return; }
+  const aW = ga.filter(x => x.won).length, bW = n - aW;
+  const aG = ga.reduce((s, x) => s + x.gf, 0), bG = ga.reduce((s, x) => s + x.ga, 0);
+  const margins = won => ga.filter(x => x.won === won).map(x => Math.abs(x.gf - x.ga));
+  const avg = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : NaN;
+  const biggest = won => {
+    const w = ga.filter(x => x.won === won);
+    if (!w.length) return '–';
+    const g = w.reduce((p, x) => Math.abs(x.gf - x.ga) > Math.abs(p.gf - p.ga) ? x : p);
+    return won ? `${g.gf}–${g.ga}` : `${g.ga}–${g.gf}`;
+  };
+  let streak = '–';
+  { const last = ga[n - 1].won; let c = 0;
+    for (let i = n - 1; i >= 0 && ga[i].won === last; i--) c++;
+    streak = `<span class="${last ? 'a' : 'b'}">${esc(last ? A : B)} W${c}</span>`; }
+  const close = ga.filter(x => Math.abs(x.gf - x.ga) === 1).length;
+  const rows = [
+    ['Win %', pct(aW, n), pct(bW, n)],
+    ['Avg goals scored', fmt(aG / n), fmt(bG / n)],
+    ['Avg goals allowed', fmt(bG / n), fmt(aG / n)],
+    ['Total goals', aG, bG],
+    ['Goal differential', signed(aG - bG), signed(bG - aG)],
+    ['Avg margin of victory', fmt(avg(margins(true))), fmt(avg(margins(false)))],
+    ['Biggest win', biggest(true), biggest(false)],
+  ];
+  $('h2hBody').innerHTML = `
+    <div class="score">
+      <div><div class="big a">${aW}</div><div class="name">${esc(A)}</div></div>
+      <div class="mid">${n} game${n === 1 ? '' : 's'}<br>current streak: ${streak}</div>
+      <div><div class="big b">${bW}</div><div class="name">${esc(B)}</div></div>
+    </div>
+    <div class="bar"><div style="width:${aW / n * 100}%;background:var(--a)"></div><div style="width:${bW / n * 100}%;background:var(--b)"></div></div>
+    <table><tr><th></th><th class="a">${esc(A)}</th><th class="b">${esc(B)}</th></tr>
+      ${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
+      <tr><td>One-goal games</td><td colspan="2" style="text-align:center">${close} of ${n}</td></tr></table>
+    <h3>Match history</h3>
+    <table><tr><th>Date</th><th class="a">${esc(A)}</th><th class="b">${esc(B)}</th><th>Winner</th></tr>
+      ${ga.slice().reverse().map(x => `<tr><td>${fmtDate(x.date)}</td>
+        <td class="${x.won ? 'win' : ''}">${x.gf}</td><td class="${x.won ? '' : 'win'}">${x.ga}</td>
+        <td class="${x.won ? 'a' : 'b'}">${esc(x.won ? A : B)}</td></tr>`).join('')}</table>`;
+}
+
+function setMatchup(A, B, scroll) {
+  $('pa').value = A; $('pb').value = B;
+  try { history.replaceState(null, '', '#' + encodeURIComponent(A) + '-vs-' + encodeURIComponent(B)); } catch {}
+  renderH2H();
+  if (scroll) $('h2h').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ---------- Recent matches ----------
+function renderRecent() {
+  const ms = sorted().reverse().slice(0, 25);
+  $('recent').innerHTML = ms.length
+    ? '<tr><th>Date</th><th class="l">Winner</th><th>Score</th><th class="l">Loser</th></tr>' +
+      ms.map(m => {
+        const [w, wg, l, lg] = m.g1 > m.g2 ? [m.p1, m.g1, m.p2, m.g2] : [m.p2, m.g2, m.p1, m.g1];
+        return `<tr><td>${fmtDate(m.date)}</td><td class="l win">${esc(w)}</td><td>${wg}–${lg}</td><td class="l">${esc(l)}</td></tr>`;
+      }).join('')
+    : '<tr><td class="empty">No matches yet.</td></tr>';
+}
+
+// ---------- Dropdowns ----------
+function fillSelects() {
+  const opts = allPlayers().map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  for (const id of ['pa', 'pb']) $(id).innerHTML = opts;
+  for (const id of ['p1', 'p2']) $(id).innerHTML = '<option value="">Choose…</option>' + opts;
+}
+
+function renderAll() { renderBoard(); renderH2H(); renderRecent(); }
+
+// ---------- Add a match ----------
+const lineFor = m => `  { date: "${m.date}", p1: ${JSON.stringify(m.p1)}, g1: ${m.g1}, p2: ${JSON.stringify(m.p2)}, g2: ${m.g2} },`;
 
 async function commitToGitHub(m, token) {
   const api = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/contents/${FILE}`;
@@ -218,36 +306,57 @@ async function commitToGitHub(m, token) {
   const fixed = text.replace(/\}\s*\n(\s*\{)/g, '},\n$1').replace(/\}\s*\n(\s*\/\/ NEW MATCHES)/, '},\n$1');
   const updated = fixed.replace(MARKER, lineFor(m) + '\n' + MARKER);
   const res = await fetch(api, { method: 'PUT', headers, body: JSON.stringify({
-    message: `Add match ${m.date}: Jon ${m.jon} - Jimmy ${m.jimmy}`,
+    message: `Add match ${m.date}: ${m.p1} ${m.g1} - ${m.p2} ${m.g2}`,
     content: btoa(unescape(encodeURIComponent(updated))), sha }) });
   if (!res.ok) throw new Error(`Commit failed (HTTP ${res.status})`);
 }
 
-$('d').value = new Date().toLocaleDateString('en-CA');
 $('add').addEventListener('submit', async e => {
   e.preventDefault();
-  const m = { date: $('d').value, jon: +$('j').value, jimmy: +$('m').value };
-  if (m.jon === m.jimmy) { $('msg').textContent = 'No ties in foosball. Check the score.'; return; }
-  MATCHES.push(m); render();
+  const m = { date: $('d').value, p1: $('p1').value, g1: +$('g1').value, p2: $('p2').value, g2: +$('g2').value };
+  if (m.p1 === m.p2) { $('msg').textContent = 'Pick two different players.'; return; }
+  if (m.g1 === m.g2) { $('msg').textContent = 'No ties in foosball. Check the score.'; return; }
+  MATCHES.push(m);
+  setMatchup(m.p1, m.p2, false);
+  renderAll();
   const token = store.get('gh_token');
   if (token) {
     $('msg').textContent = 'Saving to GitHub…';
     try {
       await commitToGitHub(m, token);
       $('msg').textContent = 'Saved and committed. The live site updates in about a minute.';
-    } catch (err) { $('msg').innerHTML = `${err.message}. Add it by hand instead:<pre>${lineFor(m)}</pre>`; }
+    } catch (err) { $('msg').innerHTML = `${esc(err.message)}. Add it by hand instead:<pre>${esc(lineFor(m))}</pre>`; }
   } else {
     $('msg').innerHTML = `Added on this page only. To keep it, paste this line into <code>${FILE}</code>
-      just above <code>// NEW MATCHES ABOVE THIS LINE</code> and commit:<pre>${lineFor(m)}</pre>`;
+      just above <code>// NEW MATCHES ABOVE THIS LINE</code> and commit:<pre>${esc(lineFor(m))}</pre>`;
   }
-  $('j').value = ''; $('m').value = '';
+  $('g1').value = ''; $('g2').value = '';
 });
 
 const tokState = () => $('tokState').textContent = store.get('gh_token') ? '(token saved)' : '(no token)';
 $('saveTok').onclick = () => { store.set('gh_token', $('tok').value.trim()); $('tok').value = ''; tokState(); };
 $('clearTok').onclick = () => { store.set('gh_token', null); tokState(); };
+
+// ---------- Start ----------
+$('d').value = new Date().toLocaleDateString('en-CA');
+fillSelects();
+$('pa').onchange = $('pb').onchange = () => setMatchup($('pa').value, $('pb').value, false);
+{
+  // Start from the link (#Jon-vs-Jimmy) if there is one, otherwise the most-played matchup
+  const players = allPlayers();
+  const fromHash = decodeURIComponent(location.hash.slice(1)).split('-vs-');
+  let A, B;
+  if (fromHash.length === 2 && players.includes(fromHash[0]) && players.includes(fromHash[1])) [A, B] = fromHash;
+  else {
+    const counts = {};
+    for (const m of MATCHES) { const k = JSON.stringify([m.p1, m.p2].sort()); counts[k] = (counts[k] || 0) + 1; }
+    const top = Object.entries(counts).sort((x, y) => y[1] - x[1])[0];
+    [A, B] = top ? JSON.parse(top[0]) : [players[0], players[1]];
+  }
+  if (A && B) { $('pa').value = A; $('pb').value = B; }
+}
 tokState();
-render();
+renderAll();
 </script>
 </body>
 </html>
