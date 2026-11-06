@@ -6,5 +6,6 @@ const PLAYERS = [
   "Jimmy",
   "Josh",
   "Cole",
+  "Austin",
   // NEW PLAYERS ABOVE THIS LINE
 ];
