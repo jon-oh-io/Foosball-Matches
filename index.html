@@ -34,8 +34,11 @@
   th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
   th:first-child, td:first-child, .l { text-align: left; }
   th { color: var(--muted); font-weight: 500; font-size: 13px; }
-  #board tbody tr { cursor: pointer; }
-  #board tbody tr:hover { background: var(--hover); }
+  #board tbody tr[data-p] { cursor: pointer; }
+  #board tbody tr[data-p]:hover { background: var(--hover); }
+  #board tr.prov td { color: var(--muted); }
+  #board tr.divider td { text-align: left; color: var(--muted); font-size: 12px; font-weight: 600;
+                         text-transform: uppercase; letter-spacing: .04em; padding-top: 16px; }
   .rank { color: var(--muted); width: 28px; }
   .crown { color: var(--gold); }
   .win { font-weight: 700; }
@@ -102,7 +105,7 @@
   <div class="card">
     <h2>Leaderboard</h2>
     <div class="scroll"><table id="board"></table></div>
-    <p class="hint">Click a player to see their head-to-heads.</p>
+    <p class="hint">Ranked by win % once you've played 5 games. Click a player to see their head-to-heads.</p>
   </div>
 
   <div class="card" id="h2h">
@@ -207,21 +210,31 @@ function playerStats(who, ms = sorted()) {
 }
 
 // ---------- Leaderboard ----------
+// Players need this many games to get a rank; everyone else is listed below as provisional.
+const MIN_GAMES = 5;
+
 function renderBoard() {
   const ms = sorted();
   const rows = allPlayers().map(p => playerStats(p, ms))
     .sort((x, y) => (y.n ? y.w / y.n : -1) - (x.n ? x.w / x.n : -1) || y.w - x.w || (y.gf - y.ga) - (x.gf - x.ga));
+  const ranked = rows.filter(r => r.n >= MIN_GAMES), provisional = rows.filter(r => r.n < MIN_GAMES);
   const goals = ms.reduce((s, m) => s + m.g1 + m.g2, 0);
   $('summary').textContent = `${ms.length} games · ${allPlayers().length} players · ${goals} goals`;
-  $('board').innerHTML = `<thead><tr><th>#</th><th class="l">Player</th><th>GP</th><th>W</th><th>L</th><th>Win %</th>
-      <th>GF/g</th><th>GA/g</th><th>GD</th><th>Streak</th></tr></thead><tbody>` +
-    rows.map((r, i) => `<tr data-p="${esc(r.who)}">
-      <td class="rank">${r.n ? i + 1 : ''}</td>
-      <td class="l"><b>${esc(r.who)}</b>${i === 0 && r.n ? ' <span class="crown" title="Top of the table">♛</span>' : ''}</td>
+  const row = (r, rank) => `<tr data-p="${esc(r.who)}"${rank ? '' : ' class="prov"'}>
+      <td class="rank">${rank || ''}</td>
+      <td class="l"><b>${esc(r.who)}</b>${rank === 1 ? ' <span class="crown" title="Top of the table">♛</span>' : ''}</td>
       <td>${r.n}</td><td>${r.w}</td><td>${r.l}</td><td>${pct(r.w, r.n)}</td>
       <td>${fmt(r.gf / r.n)}</td><td>${fmt(r.ga / r.n)}</td><td>${r.n ? signed(r.gf - r.ga) : '–'}</td><td>${r.streak}</td>
-    </tr>`).join('') + '</tbody>';
-  $('board').querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => {
+    </tr>`;
+  $('board').innerHTML = `<thead><tr><th>#</th><th class="l">Player</th><th>GP</th><th>W</th><th>L</th><th>Win %</th>
+      <th>GF/g</th><th>GA/g</th><th>GD</th><th>Streak</th></tr></thead><tbody>` +
+    (ranked.length ? '' : `<tr class="divider"><td colspan="10">Nobody has played ${MIN_GAMES} games yet.</td></tr>`) +
+    ranked.map((r, i) => row(r, i + 1)).join('') +
+    (provisional.length
+      ? `<tr class="divider"><td colspan="10">Provisional · fewer than ${MIN_GAMES} games</td></tr>` +
+        provisional.map(r => row(r, 0)).join('')
+      : '') + '</tbody>';
+  $('board').querySelectorAll('tbody tr[data-p]').forEach(tr => tr.onclick = () => {
     const p = tr.dataset.p;
     // Pair them with their most-played opponent
     const opp = Object.entries(playerStats(p).games.reduce((c, g) => (c[g.opp] = (c[g.opp] || 0) + 1, c), {}))

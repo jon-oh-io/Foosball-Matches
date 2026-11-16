@@ -31,6 +31,8 @@ The token is kept in that browser's local storage only, and is used for both mat
 
 ## What's on the page
 - **Leaderboard:** every player's games, wins, losses, win %, goals for/against per game, goal differential and streak.
+  Players are ranked by win % once they've played 5 games; anyone with fewer is listed below as provisional
+  (change `MIN_GAMES` in `index.html` to adjust).
 - **Head-to-head:** pick any two players (or click a name on the leaderboard) for their record, stats and match history.
   Link straight to a matchup with `#Jon-vs-Jimmy` at the end of the URL.
 - **Recent matches:** the last 25 games across the office.
